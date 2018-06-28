@@ -1,0 +1,15 @@
+{
+  "name": "rest-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Me",
+  "license": "MIT",
+  "dependencies": {
+    "@types/mongodb": "^3.0.22",
+    "mongodb": "^3.0.0"
+  }
+}

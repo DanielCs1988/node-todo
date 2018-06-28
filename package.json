@@ -10,6 +10,6 @@
   "license": "MIT",
   "dependencies": {
     "@types/mongodb": "^3.0.22",
-    "mongodb": "^3.0.0"
+    "mongodb": "^3.1.0"
   }
 }

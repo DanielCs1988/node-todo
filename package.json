@@ -9,7 +9,13 @@
   "author": "Me",
   "license": "MIT",
   "dependencies": {
+    "@types/body-parser": "^1.17.0",
+    "@types/express": "^4.16.0",
     "@types/mongodb": "^3.0.22",
-    "mongodb": "^3.1.0"
+    "@types/mongoose": "^5.0.18",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "mongodb": "^3.1.0",
+    "mongoose": "^5.1.7"
   }
 }

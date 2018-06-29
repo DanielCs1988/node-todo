@@ -56,7 +56,7 @@ describe('POST /users', () => {
                    expect(user).toInclude({email: email});
                    expect(user!.password).toNotBe(password);
                    done();
-                });
+                }).catch(err => done(err));
             });
     });
 
@@ -78,6 +78,58 @@ describe('POST /users', () => {
             .send({email, password})
             .expect(400)
             .end(done);
+    });
+
+});
+
+describe('POST /users/login', () => {
+
+    it('should login user and return auth token', done => {
+        const email = users[0].email;
+        const password = users[0].password;
+        request(app)
+            .post('/users/login')
+            .send({email, password})
+            .expect(200)
+            .expect((res: any) => {
+                expect(res.headers['x-auth']).toExist();
+                expect(res.body._id).toExist();
+                expect(res.body.email).toBe(email);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                User.findById(users[0]._id).then(user => {
+                    expect(user!.tokens[1]).toInclude({
+                        access: 'auth',
+                        token: res.header['x-auth']
+                    });
+                    done();
+                }).catch(err => done(err));
+            });
+    });
+
+    it('should reject invalid login', done => {
+        const email = users[0].email;
+        const password = 'notmypassword';
+        request(app)
+            .post('/users/login')
+            .send({email, password})
+            .expect(401)
+            .expect((res: any) => {
+                expect(res.headers['x-auth']).toNotExist();
+                expect(res.body).toEqual({});
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                User.findById(users[0]._id).then(user => {
+                    expect(user!.tokens.length).toBe(1);
+                    done();
+                }).catch(err => done(err));
+            });
     });
 
 });

@@ -97,4 +97,37 @@ mocha_1.describe('GET /todos/:id', () => {
             .end(done);
     });
 });
+mocha_1.describe('DELETE /todos/:id', () => {
+    mocha_1.it('delete a todo by ID from the server', done => {
+        request(server_1.app)
+            .delete('/todos/' + firstId)
+            .expect(200)
+            .expect((res) => {
+            expect(res.body.todo).toInclude({ text: 'First test todo', completed: false, completedAt: null });
+        })
+            .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            todo_model_1.Todo.findById(firstId).then(todo => {
+                expect(todo).toNotExist();
+                done();
+            }).catch(err => done(err));
+        });
+    });
+    mocha_1.it('should get a 400 if ID is invalid', done => {
+        const id = '5b360ad6d527ca1d80da031dx';
+        request(server_1.app)
+            .delete('/todos/' + id)
+            .expect(400)
+            .end(done);
+    });
+    mocha_1.it('should get a 404 if id is not found', done => {
+        const id = new mongodb_1.ObjectId();
+        request(server_1.app)
+            .delete('/todos/' + id)
+            .expect(404)
+            .end(done);
+    });
+});
 //# sourceMappingURL=server.test.js.map

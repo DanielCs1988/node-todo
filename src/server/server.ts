@@ -5,7 +5,7 @@ import {ObjectId} from 'mongodb';
 
 import {Todo} from "./models/todo.model";
 
-const PORT = process.env.port || 8080;
+const PORT = process.env.PORT || 8080;
 const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp';
 
 export const app = express();

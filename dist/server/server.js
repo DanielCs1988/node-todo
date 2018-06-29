@@ -5,7 +5,7 @@ const body_parser_1 = require("body-parser");
 const mongoose_1 = require("mongoose");
 const mongodb_1 = require("mongodb");
 const todo_model_1 = require("./models/todo.model");
-const PORT = process.env.port || 8080;
+const PORT = process.env.PORT || 8080;
 const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp';
 exports.app = express();
 mongoose_1.connect(DB_URL);

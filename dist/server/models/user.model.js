@@ -69,10 +69,25 @@ UserSchema.statics.findByToken = function (token) {
         return Promise.reject('Invalid credentials!');
     }
     decodedToken = decodedToken;
-    return exports.User.findOne({
+    return this.findOne({
         '_id': decodedToken._id,
         'tokens.token': token,
         'tokens.access': decodedToken.access
+    });
+};
+UserSchema.statics.findByCredentials = function (email, password) {
+    return this.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject('Invalid credentials!');
+        }
+        return new Promise(((resolve, reject) => {
+            bcryptjs_1.compare(password, user.password, (err, res) => {
+                if (err || !res) {
+                    reject('Invalid credentials!');
+                }
+                resolve(user);
+            });
+        }));
     });
 };
 exports.User = mongoose_1.model('User', UserSchema);

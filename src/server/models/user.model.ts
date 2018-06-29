@@ -2,7 +2,7 @@ import {Document, Schema, model, Model} from "mongoose";
 import isEmail = require("validator/lib/isEmail");
 import {sign, verify} from "jsonwebtoken";
 import {pick} from "lodash";
-import {genSalt, hash} from "bcryptjs";
+import {compare, genSalt, hash} from "bcryptjs";
 
 const secret = process.env.SECRET;
 if (!secret) {
@@ -18,6 +18,7 @@ export interface IUser extends Document {
 
 export interface IUserModel extends Model<IUser> {
     findByToken(token: string | undefined): any;
+    findByCredentials(email: string, password: string): any;
 }
 
 export interface Token {
@@ -88,11 +89,27 @@ UserSchema.statics.findByToken = function (token: string | undefined): any {
         return Promise.reject('Invalid credentials!');
     }
     decodedToken = <{_id: string, access: string}>decodedToken;
-    return User.findOne({
+    return this.findOne({
         '_id': decodedToken._id,
         'tokens.token': token,
         'tokens.access': decodedToken.access
     });
+};
+
+UserSchema.statics.findByCredentials = function (email: string, password: string): any {
+    return this.findOne({email}).then((user: IUser) => {
+        if (!user) {
+            return Promise.reject('Invalid credentials!');
+        }
+        return new Promise(((resolve, reject) => {
+            compare(password, user.password, (err, res) => {
+                if (err || !res) {
+                    reject('Invalid credentials!');
+                }
+                resolve(user);
+            });
+        }));
+    })
 };
 
 export const User: IUserModel = model<IUser, IUserModel>('User', UserSchema);

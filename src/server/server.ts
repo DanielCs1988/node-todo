@@ -6,7 +6,7 @@ import {pick} from "lodash";
 
 import {Todo} from "./models/todo.model";
 import {env} from "./config/config";
-import {User} from "./models/user.model";
+import {IUser, User} from "./models/user.model";
 import {authenticate} from "./middleware/authenticate";
 
 const PORT = process.env.PORT;
@@ -106,6 +106,17 @@ app.post('/users', (req, res) => {
 
 app.get('/users/me', authenticate, (req: any, res) => {
     res.send(req.user);
+});
+
+app.post('/users/login', (req, res) => {
+   const authData = pick(req.body, ['email', 'password']);
+   User.findByCredentials(authData.email, authData.password)
+       .then((user: IUser) => {
+           return user.generateAuthToken().then(token => {
+               res.header('x-auth', token).send(user)
+           });
+       })
+       .catch((err: Error) => res.status(401).send('Invalid credentials!'));
 });
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${env} mode...`));

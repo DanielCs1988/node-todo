@@ -96,5 +96,15 @@ exports.app.post('/users', (req, res) => {
 exports.app.get('/users/me', authenticate_1.authenticate, (req, res) => {
     res.send(req.user);
 });
+exports.app.post('/users/login', (req, res) => {
+    const authData = lodash_1.pick(req.body, ['email', 'password']);
+    user_model_1.User.findByCredentials(authData.email, authData.password)
+        .then((user) => {
+        return user.generateAuthToken().then(token => {
+            res.header('x-auth', token).send(user);
+        });
+    })
+        .catch((err) => res.status(401).send('Invalid credentials!'));
+});
 exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${config_1.env} mode...`));
 //# sourceMappingURL=server.js.map

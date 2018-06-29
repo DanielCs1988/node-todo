@@ -1,14 +1,22 @@
-import {Document, Schema, model} from "mongoose";
+import {Document, Schema, model, Model} from "mongoose";
 import isEmail = require("validator/lib/isEmail");
-import {sign} from "jsonwebtoken";
+import {sign, verify} from "jsonwebtoken";
 import {pick} from "lodash";
 
+const secret = process.env.SECRET;
+if (!secret) {
+    throw new Error('Could not hash token, because SECRET environmental variable was not found.');
+}
 
-export interface UserModel extends Document {
+export interface IUser extends Document {
     email: string;
     password: string;
     tokens: Token[];
     generateAuthToken(): Promise<string>;
+}
+
+export interface IUserModel extends Model<IUser> {
+    findByToken(token: string | undefined): any;
 }
 
 export interface Token {
@@ -53,13 +61,24 @@ UserSchema.methods.toJSON = function (): {_id: string, email: string} {
 UserSchema.methods.generateAuthToken = function (): Promise<string> {
     const user = this;
     const access = 'auth';
-    const secret = process.env.SECRET;
-    if (!secret) {
-        throw new Error('Could not hash token, because SECRET environmental variable was not found.');
-    }
     const token = sign({_id: user._id.toHexString(), access}, secret).toString();
     user.tokens = user.tokens.concat([{access, token}]);
     return user.save().then(() => token);
 };
 
-export const User = model<UserModel>('User', UserSchema);
+UserSchema.statics.findByToken = function (token: string | undefined): any {
+    let decodedToken;
+    try {
+        decodedToken = verify(token!, secret);
+    } catch (e) {
+        return Promise.reject('Invalid credentials!');
+    }
+    decodedToken = <{_id: string, access: string}>decodedToken;
+    return User.findOne({
+        '_id': decodedToken._id,
+        'tokens.token': token,
+        'tokens.access': decodedToken.access
+    });
+};
+
+export const User: IUserModel = model<IUser, IUserModel>('User', UserSchema);

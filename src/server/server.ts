@@ -7,6 +7,7 @@ import {pick} from "lodash";
 import {Todo} from "./models/todo.model";
 import {env} from "./config/config";
 import {User} from "./models/user.model";
+import {authenticate} from "./middleware/authenticate";
 
 const PORT = process.env.PORT;
 const DB_URL = process.env.MONGODB_URI;
@@ -101,6 +102,10 @@ app.post('/users', (req, res) => {
         .then(() => user.generateAuthToken())
         .then(token => res.header('x-auth', token).send(user))
         .catch(err => res.status(400).send(err));
+});
+
+app.get('/users/me', authenticate, (req: any, res) => {
+    res.send(req.user);
 });
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${env} mode...`));

@@ -8,6 +8,7 @@ const lodash_1 = require("lodash");
 const todo_model_1 = require("./models/todo.model");
 const config_1 = require("./config/config");
 const user_model_1 = require("./models/user.model");
+const authenticate_1 = require("./middleware/authenticate");
 const PORT = process.env.PORT;
 const DB_URL = process.env.MONGODB_URI;
 exports.app = express();
@@ -91,6 +92,9 @@ exports.app.post('/users', (req, res) => {
         .then(() => user.generateAuthToken())
         .then(token => res.header('x-auth', token).send(user))
         .catch(err => res.status(400).send(err));
+});
+exports.app.get('/users/me', authenticate_1.authenticate, (req, res) => {
+    res.send(req.user);
 });
 exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${config_1.env} mode...`));
 //# sourceMappingURL=server.js.map

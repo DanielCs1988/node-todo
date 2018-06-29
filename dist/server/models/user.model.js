@@ -4,6 +4,10 @@ const mongoose_1 = require("mongoose");
 const isEmail = require("validator/lib/isEmail");
 const jsonwebtoken_1 = require("jsonwebtoken");
 const lodash_1 = require("lodash");
+const secret = process.env.SECRET;
+if (!secret) {
+    throw new Error('Could not hash token, because SECRET environmental variable was not found.');
+}
 const UserSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -39,13 +43,24 @@ UserSchema.methods.toJSON = function () {
 UserSchema.methods.generateAuthToken = function () {
     const user = this;
     const access = 'auth';
-    const secret = process.env.SECRET;
-    if (!secret) {
-        throw new Error('Could not hash token, because SECRET environmental variable was not found.');
-    }
     const token = jsonwebtoken_1.sign({ _id: user._id.toHexString(), access }, secret).toString();
     user.tokens = user.tokens.concat([{ access, token }]);
     return user.save().then(() => token);
+};
+UserSchema.statics.findByToken = function (token) {
+    let decodedToken;
+    try {
+        decodedToken = jsonwebtoken_1.verify(token, secret);
+    }
+    catch (e) {
+        return Promise.reject('Invalid credentials!');
+    }
+    decodedToken = decodedToken;
+    return exports.User.findOne({
+        '_id': decodedToken._id,
+        'tokens.token': token,
+        'tokens.access': decodedToken.access
+    });
 };
 exports.User = mongoose_1.model('User', UserSchema);
 //# sourceMappingURL=user.model.js.map

@@ -6,6 +6,7 @@ import {pick} from "lodash";
 
 import {Todo} from "./models/todo.model";
 import {env} from "./config/config";
+import {User} from "./models/user.model";
 
 const PORT = process.env.PORT;
 const DB_URL = process.env.MONGODB_URI;
@@ -92,6 +93,14 @@ app.patch('/todos/:id', (req, res) => {
         }
         res.status(404).send({error: 'Could not find todo with that id!'});
     }).catch(err => res.status(400).send({error: 'Could not reach database!'}))
+});
+
+app.post('/users', (req, res) => {
+    const user = new User(pick(req.body, ['email', 'password']));
+    user.save()
+        .then(() => user.generateAuthToken())
+        .then(token => res.header('x-auth', token).send(user))
+        .catch(err => res.status(400).send(err));
 });
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${env} mode...`));

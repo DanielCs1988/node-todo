@@ -7,6 +7,7 @@ const mongodb_1 = require("mongodb");
 const lodash_1 = require("lodash");
 const todo_model_1 = require("./models/todo.model");
 const config_1 = require("./config/config");
+const user_model_1 = require("./models/user.model");
 const PORT = process.env.PORT;
 const DB_URL = process.env.MONGODB_URI;
 exports.app = express();
@@ -83,6 +84,13 @@ exports.app.patch('/todos/:id', (req, res) => {
         }
         res.status(404).send({ error: 'Could not find todo with that id!' });
     }).catch(err => res.status(400).send({ error: 'Could not reach database!' }));
+});
+exports.app.post('/users', (req, res) => {
+    const user = new user_model_1.User(lodash_1.pick(req.body, ['email', 'password']));
+    user.save()
+        .then(() => user.generateAuthToken())
+        .then(token => res.header('x-auth', token).send(user))
+        .catch(err => res.status(400).send(err));
 });
 exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${config_1.env} mode...`));
 //# sourceMappingURL=server.js.map

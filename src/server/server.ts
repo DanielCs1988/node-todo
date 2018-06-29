@@ -5,10 +5,10 @@ import {ObjectId} from 'mongodb';
 
 import {Todo} from "./models/todo.model";
 
-export const app = express();
 const PORT = process.env.port || 8080;
+const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp';
 
-const DB_URL = 'mongodb://localhost:27017/TodoApp';
+export const app = express();
 connect(DB_URL);
 // TODO: How to separate this?
 

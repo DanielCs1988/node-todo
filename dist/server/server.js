@@ -40,5 +40,21 @@ exports.app.post('/todos', (req, res) => {
         .then(doc => res.send(doc))
         .catch(err => res.status(400).send(err));
 });
+exports.app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    if (!mongodb_1.ObjectId.isValid(id)) {
+        res.status(400).send({ error: 'Invalid id!' });
+        return;
+    }
+    todo_model_1.Todo.findByIdAndRemove(id)
+        .then(todo => {
+        if (todo) {
+            res.send({ todo });
+            return;
+        }
+        res.status(404).send({ error: 'Could not find todo with that id!' });
+    })
+        .catch(err => res.status(400).send({ error: 'Could not reach database!' }));
+});
 exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));
 //# sourceMappingURL=server.js.map

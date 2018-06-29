@@ -3,8 +3,8 @@ import {Document, Schema, model} from "mongoose";
 
 export interface TodoModel extends Document {
     text: string;
-    completed: boolean;
-    completedAt: number;
+    completed?: boolean;
+    completedAt?: number | null;
 }
 
 const TodoSchema = new Schema({

@@ -4,6 +4,7 @@ const express = require("express");
 const body_parser_1 = require("body-parser");
 const mongoose_1 = require("mongoose");
 const mongodb_1 = require("mongodb");
+const lodash_1 = require("lodash");
 const todo_model_1 = require("./models/todo.model");
 const PORT = process.env.PORT || 8080;
 const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp';
@@ -55,6 +56,32 @@ exports.app.delete('/todos/:id', (req, res) => {
         res.status(404).send({ error: 'Could not find todo with that id!' });
     })
         .catch(err => res.status(400).send({ error: 'Could not reach database!' }));
+});
+exports.app.patch('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const body = lodash_1.pick(req.body, ['text', 'completed']);
+    if (body.text !== undefined && body.text === '') {
+        res.status(400).send({ error: 'Text cannot be empty!' });
+        return;
+    }
+    if (!mongodb_1.ObjectId.isValid(id)) {
+        res.status(400).send({ error: 'Invalid id!' });
+        return;
+    }
+    if (body.completed) {
+        body.completedAt = new Date().getTime();
+    }
+    else {
+        body.completed = false;
+        body.completedAt = null;
+    }
+    todo_model_1.Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then(todo => {
+        if (todo) {
+            res.send({ todo });
+            return;
+        }
+        res.status(404).send({ error: 'Could not find todo with that id!' });
+    }).catch(err => res.status(400).send({ error: 'Could not reach database!' }));
 });
 exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));
 //# sourceMappingURL=server.js.map

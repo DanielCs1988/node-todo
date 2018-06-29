@@ -4,6 +4,7 @@ const mongoose_1 = require("mongoose");
 const isEmail = require("validator/lib/isEmail");
 const jsonwebtoken_1 = require("jsonwebtoken");
 const lodash_1 = require("lodash");
+const bcryptjs_1 = require("bcryptjs");
 const secret = process.env.SECRET;
 if (!secret) {
     throw new Error('Could not hash token, because SECRET environmental variable was not found.');
@@ -47,6 +48,18 @@ UserSchema.methods.generateAuthToken = function () {
     user.tokens = user.tokens.concat([{ access, token }]);
     return user.save().then(() => token);
 };
+UserSchema.pre('save', function (next) {
+    const user = this;
+    if (!user.isModified('password')) {
+        return next();
+    }
+    bcryptjs_1.genSalt(12, (err, salt) => {
+        bcryptjs_1.hash(user.password, salt, (err, hash) => {
+            user.password = hash;
+            next();
+        });
+    });
+});
 UserSchema.statics.findByToken = function (token) {
     let decodedToken;
     try {

@@ -2,6 +2,7 @@ import {Document, Schema, model, Model} from "mongoose";
 import isEmail = require("validator/lib/isEmail");
 import {sign, verify} from "jsonwebtoken";
 import {pick} from "lodash";
+import {genSalt, hash} from "bcryptjs";
 
 const secret = process.env.SECRET;
 if (!secret) {
@@ -65,6 +66,19 @@ UserSchema.methods.generateAuthToken = function (): Promise<string> {
     user.tokens = user.tokens.concat([{access, token}]);
     return user.save().then(() => token);
 };
+
+UserSchema.pre('save', function (next) {
+   const user = <IUser>this;
+    if (!user.isModified('password')) {
+        return next();
+    }
+   genSalt(12, (err, salt) => {
+      hash(user.password, salt, (err, hash) => {
+          user.password = hash;
+          next();
+      })
+   });
+});
 
 UserSchema.statics.findByToken = function (token: string | undefined): any {
     let decodedToken;

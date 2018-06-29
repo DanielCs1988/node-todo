@@ -13,6 +13,12 @@ connect(DB_URL);
 
 app.use(json());
 
+app.get('/todos', (req, res) => {
+   Todo.find().then(todos => {
+       res.send({todos});
+   }).catch(err => res.status(400).send(err));
+});
+
 app.post('/todos', (req, res) => {
     const todo = new Todo({
         text: req.body.text

@@ -7,11 +7,15 @@ const mongodb_1 = require("mongodb");
 const todo_model_1 = require("../models/todo.model");
 const server_1 = require("../server");
 const firstId = new mongodb_1.ObjectId();
+const secondId = new mongodb_1.ObjectId();
 const todos = [{
         _id: firstId,
         text: 'First test todo'
     }, {
-        text: 'Second test todo'
+        _id: secondId,
+        text: 'Second test todo',
+        completed: true,
+        completedAt: 17500
     }];
 mocha_1.beforeEach((done) => {
     todo_model_1.Todo.remove({})
@@ -128,6 +132,64 @@ mocha_1.describe('DELETE /todos/:id', () => {
             .delete('/todos/' + id)
             .expect(404)
             .end(done);
+    });
+});
+mocha_1.describe('PATCH /todos/:id', () => {
+    mocha_1.it('update a todo by ID when set to completed', done => {
+        request(server_1.app)
+            .patch('/todos/' + firstId)
+            .send({ 'completed': true, 'text': 'The new text' })
+            .expect(200)
+            .expect((res) => {
+            expect(res.body.todo).toInclude({ text: 'The new text', completed: true });
+            expect(res.body.todo.completedAt).toBeA('number');
+        })
+            .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            todo_model_1.Todo.findById(firstId).then(todo => {
+                expect(todo).toInclude({ text: 'The new text', completed: true });
+                expect(todo.completedAt).toBeA('number');
+                done();
+            }).catch(err => done(err));
+        });
+    });
+    mocha_1.it('update a todo by ID when set to completed', done => {
+        request(server_1.app)
+            .patch('/todos/' + secondId)
+            .send({ 'completed': false })
+            .expect(200)
+            .expect((res) => {
+            expect(res.body.todo).toInclude({ text: 'Second test todo', completed: false });
+            expect(res.body.todo.completedAt).toBeFalsy();
+        })
+            .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            todo_model_1.Todo.findById(secondId).then(todo => {
+                expect(todo).toInclude({ text: 'Second test todo', completed: false });
+                expect(todo.completedAt).toBeFalsy();
+                done();
+            }).catch(err => done(err));
+        });
+    });
+    mocha_1.it('should throw a 400 if empty text is sent', done => {
+        request(server_1.app)
+            .patch('/todos/' + secondId)
+            .send({ 'text': '' })
+            .expect(400)
+            .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            todo_model_1.Todo.findById(secondId).then(todo => {
+                expect(todo).toInclude({ text: 'Second test todo', completed: true });
+                expect(todo.completedAt).toBeA('number');
+                done();
+            }).catch(err => done(err));
+        });
     });
 });
 //# sourceMappingURL=server.test.js.map

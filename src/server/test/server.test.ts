@@ -7,11 +7,15 @@ import {Todo} from "../models/todo.model";
 import {app} from "../server";
 
 const firstId = new ObjectId();
+const secondId = new ObjectId();
 const todos = [{
     _id: firstId,
     text: 'First test todo'
 }, {
-    text: 'Second test todo'
+    _id: secondId,
+    text: 'Second test todo',
+    completed: true,
+    completedAt: 17500
 }];
 
 beforeEach((done: any) => {
@@ -142,6 +146,69 @@ describe('DELETE /todos/:id', () => {
             .delete('/todos/' + id)
             .expect(404)
             .end(done);
+    });
+
+});
+
+describe('PATCH /todos/:id', () => {
+
+    it('update a todo by ID when set to completed', done => {
+        request(app)
+            .patch('/todos/' + firstId)
+            .send({'completed': true, 'text': 'The new text'})
+            .expect(200)
+            .expect((res: any) => {
+                expect(res.body.todo).toInclude({text: 'The new text', completed: true});
+                expect(res.body.todo.completedAt).toBeA('number');
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(firstId).then(todo => {
+                    expect(todo).toInclude({text: 'The new text', completed: true});
+                    expect(todo!.completedAt).toBeA('number');
+                    done();
+                }).catch(err => done(err));
+            });
+    });
+
+    it('update a todo by ID when set to completed', done => {
+        request(app)
+            .patch('/todos/' + secondId)
+            .send({'completed': false})
+            .expect(200)
+            .expect((res: any) => {
+                expect(res.body.todo).toInclude({text: 'Second test todo', completed: false});
+                expect(res.body.todo.completedAt).toBeFalsy();
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(secondId).then(todo => {
+                    expect(todo).toInclude({text: 'Second test todo', completed: false});
+                    expect(todo!.completedAt).toBeFalsy();
+                    done();
+                }).catch(err => done(err));
+            });
+    });
+
+    it('should throw a 400 if empty text is sent', done => {
+        request(app)
+            .patch('/todos/' + secondId)
+            .send({'text': ''})
+            .expect(400)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(secondId).then(todo => {
+                    expect(todo).toInclude({text: 'Second test todo', completed: true});
+                    expect(todo!.completedAt).toBeA('number');
+                    done();
+                }).catch(err => done(err));
+            });
     });
 
 });

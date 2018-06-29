@@ -106,5 +106,10 @@ exports.app.post('/users/login', (req, res) => {
     })
         .catch((err) => res.status(401).send('Invalid credentials!'));
 });
+exports.app.delete('/users', authenticate_1.authenticate, (req, res) => {
+    req.user.removeToken(req.token)
+        .then(() => res.status(200).send())
+        .catch(() => res.status(401).send());
+});
 exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${config_1.env} mode...`));
 //# sourceMappingURL=server.js.map

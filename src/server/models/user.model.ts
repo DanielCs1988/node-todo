@@ -14,6 +14,7 @@ export interface IUser extends Document {
     password: string;
     tokens: Token[];
     generateAuthToken(): Promise<string>;
+    removeToken(token: string): Promise<any>;
 }
 
 export interface IUserModel extends Model<IUser> {
@@ -66,6 +67,15 @@ UserSchema.methods.generateAuthToken = function (): Promise<string> {
     const token = sign({_id: user._id.toHexString(), access}, secret).toString();
     user.tokens = user.tokens.concat([{access, token}]);
     return user.save().then(() => token);
+};
+
+UserSchema.methods.removeToken = function (token: string): Promise<any> {
+    const user = this;
+    return user.update({
+        $pull: {
+            tokens: {token}
+        }
+    });
 };
 
 UserSchema.pre('save', function (next) {

@@ -7,7 +7,7 @@ export interface TodoModel extends Document {
     completedAt: number;
 }
 
-export const TodoSchema = new Schema({
+const TodoSchema = new Schema({
     text: {
         type: String,
         required: true,

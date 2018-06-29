@@ -1,10 +1,10 @@
 import * as express from 'express';
 import {json} from "body-parser";
-
-import {Todo} from "./models/todo.model";
 import {connect} from "mongoose";
 
-const app = express();
+import {Todo} from "./models/todo.model";
+
+export const app = express();
 const PORT = process.env.port || 8080;
 
 const DB_URL = 'mongodb://localhost:27017/TodoApp';

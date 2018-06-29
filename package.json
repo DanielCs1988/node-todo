@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server/server.js",
-    "test": "mocha dist/**/*.test.js"
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha dist/**/*.test.js"
   },
   "author": "Me",
   "license": "MIT",

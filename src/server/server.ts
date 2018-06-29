@@ -5,12 +5,13 @@ import {ObjectId} from "mongodb";
 import {pick} from "lodash";
 
 import {Todo} from "./models/todo.model";
+import {env} from "./config/config";
 
-const PORT = process.env.PORT || 8080;
-const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp';
+const PORT = process.env.PORT;
+const DB_URL = process.env.MONGODB_URI;
 
 export const app = express();
-connect(DB_URL);
+connect(DB_URL!);
 // TODO: How to separate this?
 
 app.use(json());
@@ -93,4 +94,4 @@ app.patch('/todos/:id', (req, res) => {
     }).catch(err => res.status(400).send({error: 'Could not reach database!'}))
 });
 
-app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));
+app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${env} mode...`));

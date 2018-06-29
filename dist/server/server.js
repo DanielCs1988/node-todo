@@ -6,8 +6,9 @@ const mongoose_1 = require("mongoose");
 const mongodb_1 = require("mongodb");
 const lodash_1 = require("lodash");
 const todo_model_1 = require("./models/todo.model");
-const PORT = process.env.PORT || 8080;
-const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp';
+const config_1 = require("./config/config");
+const PORT = process.env.PORT;
+const DB_URL = process.env.MONGODB_URI;
 exports.app = express();
 mongoose_1.connect(DB_URL);
 // TODO: How to separate this?
@@ -83,5 +84,5 @@ exports.app.patch('/todos/:id', (req, res) => {
         res.status(404).send({ error: 'Could not find todo with that id!' });
     }).catch(err => res.status(400).send({ error: 'Could not reach database!' }));
 });
-exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`));
+exports.app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${config_1.env} mode...`));
 //# sourceMappingURL=server.js.map

@@ -1,13 +1,14 @@
-import {Document, Schema, model} from "mongoose";
+import * as mng from "mongoose";
 
 
-export interface TodoModel extends Document {
+export interface TodoModel extends mng.Document {
     text: string;
     completed?: boolean;
     completedAt?: number | null;
+    _owner: mng.Types.ObjectId;
 }
 
-const TodoSchema = new Schema({
+const TodoSchema = new mng.Schema({
     text: {
         type: String,
         required: true,
@@ -22,7 +23,11 @@ const TodoSchema = new Schema({
         type: Number,
         required: false,
         default: null
+    },
+    _owner: {
+        type: mng.Schema.Types.ObjectId,
+        required: true
     }
 });
 
-export const Todo = model<TodoModel>('Todo', TodoSchema);
+export const Todo = mng.model<TodoModel>('Todo', TodoSchema);

@@ -15,6 +15,7 @@ mocha_1.describe('POST /todos', () => {
         const text = 'Test todo text';
         request(server_1.app)
             .post('/todos')
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .send({ text })
             .expect(200)
             .expect((res) => {
@@ -34,6 +35,7 @@ mocha_1.describe('POST /todos', () => {
     mocha_1.it('should not create a todo with invalid data', done => {
         request(server_1.app)
             .post('/todos')
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .send({})
             .expect(400)
             .end((err, res) => {
@@ -51,10 +53,11 @@ mocha_1.describe('GET /todos', () => {
     mocha_1.it('should fetch all the todos from the server', done => {
         request(server_1.app)
             .get('/todos')
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(200)
             .expect((res) => {
             expect(res.body.todos.length)
-                .toBe(2);
+                .toBe(1);
         })
             .end(done);
     });
@@ -63,16 +66,25 @@ mocha_1.describe('GET /todos/:id', () => {
     mocha_1.it('should fetch a todo by ID from the server', done => {
         request(server_1.app)
             .get('/todos/' + firstId)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(200)
             .expect((res) => {
             expect(res.body.todo).toInclude({ text: 'First test todo', completed: false, completedAt: null });
         })
             .end(done);
     });
+    mocha_1.it('should not fetch a todo item created by another user', done => {
+        request(server_1.app)
+            .get('/todos/' + secondId)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
+            .expect(404)
+            .end(done);
+    });
     mocha_1.it('should get a 400 if ID is invalid', done => {
         const id = '5b360ad6d527ca1d80da031dx';
         request(server_1.app)
             .get('/todos/' + id)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(400)
             .end(done);
     });
@@ -80,6 +92,7 @@ mocha_1.describe('GET /todos/:id', () => {
         const id = new mongodb_1.ObjectId();
         request(server_1.app)
             .get('/todos/' + id)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -88,6 +101,7 @@ mocha_1.describe('DELETE /todos/:id', () => {
     mocha_1.it('delete a todo by ID from the server', done => {
         request(server_1.app)
             .delete('/todos/' + firstId)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(200)
             .expect((res) => {
             expect(res.body.todo).toInclude({ text: 'First test todo', completed: false, completedAt: null });
@@ -106,6 +120,7 @@ mocha_1.describe('DELETE /todos/:id', () => {
         const id = '5b360ad6d527ca1d80da031dx';
         request(server_1.app)
             .delete('/todos/' + id)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(400)
             .end(done);
     });
@@ -113,14 +128,31 @@ mocha_1.describe('DELETE /todos/:id', () => {
         const id = new mongodb_1.ObjectId();
         request(server_1.app)
             .delete('/todos/' + id)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .expect(404)
             .end(done);
+    });
+    mocha_1.it('should not delete another user\'s todo item', done => {
+        request(server_1.app)
+            .delete('/todos/' + secondId)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
+            .expect(404)
+            .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            todo_model_1.Todo.findById(secondId).then(todo => {
+                expect(todo).toExist();
+                done();
+            }).catch(err => done(err));
+        });
     });
 });
 mocha_1.describe('PATCH /todos/:id', () => {
     mocha_1.it('update a todo by ID when set to completed', done => {
         request(server_1.app)
             .patch('/todos/' + firstId)
+            .set('x-auth', seed_1.users[0].tokens[0].token)
             .send({ 'completed': true, 'text': 'The new text' })
             .expect(200)
             .expect((res) => {
@@ -138,9 +170,10 @@ mocha_1.describe('PATCH /todos/:id', () => {
             }).catch(err => done(err));
         });
     });
-    mocha_1.it('update a todo by ID when set to completed', done => {
+    mocha_1.it('update a todo by ID when set to not completed', done => {
         request(server_1.app)
             .patch('/todos/' + secondId)
+            .set('x-auth', seed_1.users[1].tokens[0].token)
             .send({ 'completed': false })
             .expect(200)
             .expect((res) => {
@@ -161,6 +194,7 @@ mocha_1.describe('PATCH /todos/:id', () => {
     mocha_1.it('should throw a 400 if empty text is sent', done => {
         request(server_1.app)
             .patch('/todos/' + secondId)
+            .set('x-auth', seed_1.users[1].tokens[0].token)
             .send({ 'text': '' })
             .expect(400)
             .end((err, res) => {
@@ -170,6 +204,23 @@ mocha_1.describe('PATCH /todos/:id', () => {
             todo_model_1.Todo.findById(secondId).then(todo => {
                 expect(todo).toInclude({ text: 'Second test todo', completed: true });
                 expect(todo.completedAt).toBeA('number');
+                done();
+            }).catch(err => done(err));
+        });
+    });
+    mocha_1.it('should not allow to update another user\'s todo item', done => {
+        request(server_1.app)
+            .patch('/todos/' + firstId)
+            .set('x-auth', seed_1.users[1].tokens[0].token)
+            .send({ 'completed': true, 'text': 'The new text' })
+            .expect(404)
+            .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            todo_model_1.Todo.findById(firstId).then(todo => {
+                expect(todo).toInclude({ text: 'First test todo', completed: false });
+                expect(todo.completedAt).toNotExist();
                 done();
             }).catch(err => done(err));
         });

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = require("mongoose");
-const TodoSchema = new mongoose_1.Schema({
+const mng = require("mongoose");
+const TodoSchema = new mng.Schema({
     text: {
         type: String,
         required: true,
@@ -16,7 +16,11 @@ const TodoSchema = new mongoose_1.Schema({
         type: Number,
         required: false,
         default: null
+    },
+    _owner: {
+        type: mng.Schema.Types.ObjectId,
+        required: true
     }
 });
-exports.Todo = mongoose_1.model('Todo', TodoSchema);
+exports.Todo = mng.model('Todo', TodoSchema);
 //# sourceMappingURL=todo.model.js.map

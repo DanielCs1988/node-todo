@@ -15,18 +15,18 @@ exports.app = express();
 mongoose_1.connect(DB_URL);
 // TODO: How to separate this?
 exports.app.use(body_parser_1.json());
-exports.app.get('/todos', (req, res) => {
-    todo_model_1.Todo.find().then(todos => {
+exports.app.get('/todos', authenticate_1.authenticate, (req, res) => {
+    todo_model_1.Todo.find({ _owner: req.user._id }).then(todos => {
         res.send({ todos });
     }).catch(err => res.status(400).send(err));
 });
-exports.app.get('/todos/:id', (req, res) => {
+exports.app.get('/todos/:id', authenticate_1.authenticate, (req, res) => {
     const id = req.params.id;
     if (!mongodb_1.ObjectId.isValid(id)) {
         res.status(400).send({ error: 'Invalid id!' });
         return;
     }
-    todo_model_1.Todo.findById(req.params.id)
+    todo_model_1.Todo.findOne({ _id: req.params.id, _owner: req.user._id })
         .then(todo => {
         if (todo) {
             res.send({ todo });
@@ -36,21 +36,22 @@ exports.app.get('/todos/:id', (req, res) => {
     })
         .catch(err => res.status(400).send({ error: 'Could not reach database!' }));
 });
-exports.app.post('/todos', (req, res) => {
+exports.app.post('/todos', authenticate_1.authenticate, (req, res) => {
     const todo = new todo_model_1.Todo({
-        text: req.body.text
+        text: req.body.text,
+        _owner: req.user._id
     });
     todo.save()
         .then(doc => res.send(doc))
         .catch(err => res.status(400).send(err));
 });
-exports.app.delete('/todos/:id', (req, res) => {
+exports.app.delete('/todos/:id', authenticate_1.authenticate, (req, res) => {
     const id = req.params.id;
     if (!mongodb_1.ObjectId.isValid(id)) {
         res.status(400).send({ error: 'Invalid id!' });
         return;
     }
-    todo_model_1.Todo.findByIdAndRemove(id)
+    todo_model_1.Todo.findOneAndRemove({ _id: id, _owner: req.user._id })
         .then(todo => {
         if (todo) {
             res.send({ todo });
@@ -60,7 +61,7 @@ exports.app.delete('/todos/:id', (req, res) => {
     })
         .catch(err => res.status(400).send({ error: 'Could not reach database!' }));
 });
-exports.app.patch('/todos/:id', (req, res) => {
+exports.app.patch('/todos/:id', authenticate_1.authenticate, (req, res) => {
     const id = req.params.id;
     const body = lodash_1.pick(req.body, ['text', 'completed']);
     if (body.text !== undefined && body.text === '') {
@@ -78,7 +79,8 @@ exports.app.patch('/todos/:id', (req, res) => {
         body.completed = false;
         body.completedAt = null;
     }
-    todo_model_1.Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then(todo => {
+    todo_model_1.Todo.findOneAndUpdate({ _id: id, _owner: req.user._id }, { $set: body }, { new: true })
+        .then(todo => {
         if (todo) {
             res.send({ todo });
             return;

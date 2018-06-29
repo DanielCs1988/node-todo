@@ -3,14 +3,19 @@ import {Todo} from "../models/todo.model";
 import {sign} from "jsonwebtoken";
 import {User} from "../models/user.model";
 
+const userOneId = new ObjectId();
+const userTwoId = new ObjectId();
+
 export const todos = [{
     _id: new ObjectId(),
-    text: 'First test todo'
+    text: 'First test todo',
+    _owner: userOneId
 }, {
     _id: new ObjectId(),
     text: 'Second test todo',
     completed: true,
-    completedAt: 17500
+    completedAt: 17500,
+    _owner: userTwoId
 }];
 
 export function populateTodos(done: any) {
@@ -24,9 +29,6 @@ export function populateTodos(done: any) {
         .catch(err => done(err));
 }
 
-const userOneId = new ObjectId();
-const userTwoId = new ObjectId();
-
 export const users = [{
     _id: userOneId,
     email: 'kek@keklord.com',
@@ -38,7 +40,11 @@ export const users = [{
 }, {
     _id: userTwoId,
     email: 'zod@overmind.org',
-    password: 'bevezetem.eu'
+    password: 'bevezetem.eu',
+    tokens: [{
+        access: 'auth',
+        token: sign({_id: userTwoId, access: 'auth'}, process.env.SECRET!).toString()
+    }]
 }];
 
 export function populateUsers(done: any) {

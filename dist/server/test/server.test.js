@@ -6,27 +6,10 @@ const mocha_1 = require("mocha");
 const mongodb_1 = require("mongodb");
 const todo_model_1 = require("../models/todo.model");
 const server_1 = require("../server");
-const firstId = new mongodb_1.ObjectId();
-const secondId = new mongodb_1.ObjectId();
-const todos = [{
-        _id: firstId,
-        text: 'First test todo'
-    }, {
-        _id: secondId,
-        text: 'Second test todo',
-        completed: true,
-        completedAt: 17500
-    }];
-mocha_1.beforeEach((done) => {
-    todo_model_1.Todo.remove({})
-        .then(() => {
-        return todo_model_1.Todo.insertMany(todos, (err, doc) => {
-            if (err)
-                return done(err);
-        });
-    }).then(() => done())
-        .catch(err => done(err));
-});
+const seed_1 = require("./seed");
+const firstId = seed_1.todos[0]._id.toHexString();
+const secondId = seed_1.todos[1]._id.toHexString();
+mocha_1.beforeEach(seed_1.populateTodos);
 mocha_1.describe('POST /todos', () => {
     mocha_1.it('should create a new todo', done => {
         const text = 'Test todo text';

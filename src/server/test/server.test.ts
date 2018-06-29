@@ -5,28 +5,12 @@ import {ObjectId} from 'mongodb';
 
 import {Todo} from "../models/todo.model";
 import {app} from "../server";
+import {populateTodos, todos} from "./seed";
 
-const firstId = new ObjectId();
-const secondId = new ObjectId();
-const todos = [{
-    _id: firstId,
-    text: 'First test todo'
-}, {
-    _id: secondId,
-    text: 'Second test todo',
-    completed: true,
-    completedAt: 17500
-}];
+const firstId = todos[0]._id.toHexString();
+const secondId = todos[1]._id.toHexString();
 
-beforeEach((done: any) => {
-    Todo.remove({})
-        .then(() => {
-            return Todo.insertMany(todos, (err, doc) => {
-                if (err) return done(err);
-            });
-        }).then(() => done())
-        .catch(err => done(err));
-});
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
    it('should create a new todo', done => {

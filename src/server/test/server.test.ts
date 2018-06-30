@@ -21,7 +21,7 @@ describe('POST /todos', () => {
           .send({text})
           .expect(200)
           .expect((res: any) => {
-              expect(res.body).toInclude({text: text, completed: false, completedAt: null})
+              expect(res.body).toMatchObject({text: text, completed: false, completedAt: null})
           })
           .end((err, res) => {
               if (err) {
@@ -61,8 +61,7 @@ describe('GET /todos', () => {
             .set('x-auth', users[0].tokens![0].token)
             .expect(200)
             .expect((res: any) => {
-                expect(res.body.todos.length)
-                    .toBe(1);
+                expect(res.body.todos.length).toBe(1);
             })
             .end(done);
     });
@@ -77,7 +76,7 @@ describe('GET /todos/:id', () => {
             .set('x-auth', users[0].tokens![0].token)
             .expect(200)
             .expect((res: any) => {
-                expect(res.body.todo).toInclude({text: 'First test todo', completed: false, completedAt: null});
+                expect(res.body.todo).toMatchObject({text: 'First test todo', completed: false, completedAt: null});
             })
             .end(done);
     });
@@ -118,14 +117,14 @@ describe('DELETE /todos/:id', () => {
             .set('x-auth', users[0].tokens![0].token)
             .expect(200)
             .expect((res: any) => {
-                expect(res.body.todo).toInclude({text: 'First test todo', completed: false, completedAt: null});
+                expect(res.body.todo).toMatchObject({text: 'First test todo', completed: false, completedAt: null});
             })
             .end((err, res) => {
                 if (err) {
                     return done(err);
                 }
                 Todo.findById(firstId).then(todo => {
-                    expect(todo).toNotExist();
+                    expect(todo).toBeFalsy();
                     done();
                 }).catch(err => done(err));
             });
@@ -159,7 +158,7 @@ describe('DELETE /todos/:id', () => {
                     return done(err);
                 }
                 Todo.findById(secondId).then(todo => {
-                    expect(todo).toExist();
+                    expect(todo).toBeTruthy();
                     done();
                 }).catch(err => done(err));
             });
@@ -176,16 +175,16 @@ describe('PATCH /todos/:id', () => {
             .send({'completed': true, 'text': 'The new text'})
             .expect(200)
             .expect((res: any) => {
-                expect(res.body.todo).toInclude({text: 'The new text', completed: true});
-                expect(res.body.todo.completedAt).toBeA('number');
+                expect(res.body.todo).toMatchObject({text: 'The new text', completed: true});
+                expect(typeof res.body.todo.completedAt).toBe('number');
             })
             .end((err, res) => {
                 if (err) {
                     return done(err);
                 }
                 Todo.findById(firstId).then(todo => {
-                    expect(todo).toInclude({text: 'The new text', completed: true});
-                    expect(todo!.completedAt).toBeA('number');
+                    expect(todo).toMatchObject({text: 'The new text', completed: true});
+                    expect(typeof todo!.completedAt).toBe('number');
                     done();
                 }).catch(err => done(err));
             });
@@ -198,7 +197,7 @@ describe('PATCH /todos/:id', () => {
             .send({'completed': false})
             .expect(200)
             .expect((res: any) => {
-                expect(res.body.todo).toInclude({text: 'Second test todo', completed: false});
+                expect(res.body.todo).toMatchObject({text: 'Second test todo', completed: false});
                 expect(res.body.todo.completedAt).toBeFalsy();
             })
             .end((err, res) => {
@@ -206,7 +205,7 @@ describe('PATCH /todos/:id', () => {
                     return done(err);
                 }
                 Todo.findById(secondId).then(todo => {
-                    expect(todo).toInclude({text: 'Second test todo', completed: false});
+                    expect(todo).toMatchObject({text: 'Second test todo', completed: false});
                     expect(todo!.completedAt).toBeFalsy();
                     done();
                 }).catch(err => done(err));
@@ -224,8 +223,8 @@ describe('PATCH /todos/:id', () => {
                     return done(err);
                 }
                 Todo.findById(secondId).then(todo => {
-                    expect(todo).toInclude({text: 'Second test todo', completed: true});
-                    expect(todo!.completedAt).toBeA('number');
+                    expect(todo).toMatchObject({text: 'Second test todo', completed: true});
+                    expect(typeof todo!.completedAt).toBe('number');
                     done();
                 }).catch(err => done(err));
             });
@@ -242,8 +241,8 @@ describe('PATCH /todos/:id', () => {
                     return done(err);
                 }
                 Todo.findById(firstId).then(todo => {
-                    expect(todo).toInclude({text: 'First test todo', completed: false});
-                    expect(todo!.completedAt).toNotExist();
+                    expect(todo).toMatchObject({text: 'First test todo', completed: false});
+                    expect(todo!.completedAt).toBeFalsy();
                     done();
                 }).catch(err => done(err));
             });

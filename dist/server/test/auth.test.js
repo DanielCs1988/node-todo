@@ -38,8 +38,8 @@ mocha_1.describe('POST /users', () => {
             .send({ email, password })
             .expect(200)
             .expect((res) => {
-            expect(res.headers['x-auth']).toExist();
-            expect(res.body._id).toExist();
+            expect(res.headers['x-auth']).toBeTruthy();
+            expect(res.body._id).toBeTruthy();
             expect(res.body.email).toBe(email);
         })
             .end(err => {
@@ -47,8 +47,8 @@ mocha_1.describe('POST /users', () => {
                 return done(err);
             }
             user_model_1.User.findOne({ email }).then(user => {
-                expect(user).toInclude({ email: email });
-                expect(user.password).toNotBe(password);
+                expect(user.toObject()).toMatchObject({ email: email });
+                expect(user.password).not.toBe(password);
                 done();
             }).catch(err => done(err));
         });
@@ -81,8 +81,8 @@ mocha_1.describe('POST /users/login', () => {
             .send({ email, password })
             .expect(200)
             .expect((res) => {
-            expect(res.headers['x-auth']).toExist();
-            expect(res.body._id).toExist();
+            expect(res.headers['x-auth']).toBeTruthy();
+            expect(res.body._id).toBeTruthy();
             expect(res.body.email).toBe(email);
         })
             .end((err, res) => {
@@ -90,7 +90,7 @@ mocha_1.describe('POST /users/login', () => {
                 return done(err);
             }
             user_model_1.User.findById(seed_1.users[0]._id).then(user => {
-                expect(user.tokens[1]).toInclude({
+                expect(user.toObject().tokens[1]).toMatchObject({
                     access: 'auth',
                     token: res.header['x-auth']
                 });
@@ -106,7 +106,7 @@ mocha_1.describe('POST /users/login', () => {
             .send({ email, password })
             .expect(401)
             .expect((res) => {
-            expect(res.headers['x-auth']).toNotExist();
+            expect(res.headers['x-auth']).toBeFalsy();
             expect(res.body).toEqual({});
         })
             .end((err, res) => {

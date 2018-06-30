@@ -54,7 +54,7 @@ describe('POST /users', () => {
                 }
                 User.findOne({email}).then(user => {
                    expect(user!.toObject()).toMatchObject({email: email});
-                   expect(user!.password).toBeFalsy(password);
+                   expect(user!.password).not.toBe(password);
                    done();
                 }).catch(err => done(err));
             });

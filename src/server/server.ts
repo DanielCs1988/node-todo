@@ -17,57 +17,65 @@ connect(DB_URL!);
 
 app.use(json());
 
-app.get('/todos', authenticate, (req: any, res) => {
-   Todo.find({_owner: req.user._id}).then(todos => {
-       res.send({todos});
-   }).catch(err => res.status(400).send(err));
+app.get('/todos', authenticate, async (req: any, res) => {
+    try {
+        const todos = await Todo.find({_owner: req.user._id});
+        res.send({todos});
+    } catch (e) {
+        res.status(400).send();
+    }
 });
 
-app.get('/todos/:id', authenticate, (req: any, res) => {
+app.get('/todos/:id', authenticate, async (req: any, res) => {
     const id = req.params.id;
     if (!ObjectId.isValid(id)) {
         res.status(400).send({error: 'Invalid id!'});
         return;
     }
-    Todo.findOne({_id: req.params.id, _owner: req.user._id})
-        .then(todo => {
-            if (todo) {
-                res.send({todo});
-                return;
-            }
-            res.status(404).send({error: 'Could not find todo with that id!'});
-        })
-        .catch(err => res.status(400).send({error: 'Could not reach database!'}))
+    try {
+        const todo = await Todo.findOne({_id: req.params.id, _owner: req.user._id});
+        if (todo) {
+            res.send({todo});
+            return;
+        }
+        res.status(404).send({error: 'Could not find todo with that id!'});
+    } catch (e) {
+        res.status(400).send({error: 'Could not reach database!'});
+    }
 });
 
-app.post('/todos', authenticate, (req: any, res) => {
+app.post('/todos', authenticate, async (req: any, res) => {
     const todo = new Todo({
         text: req.body.text,
         _owner: req.user._id
     });
-    todo.save()
-        .then(doc => res.send(doc))
-        .catch(err => res.status(400).send(err));
+    try {
+        const savedTodo = await todo.save();
+        res.send(savedTodo);
+    } catch (err) {
+        res.status(400).send(err)
+    }
 });
 
-app.delete('/todos/:id', authenticate, (req: any, res) => {
-   const id = req.params.id;
+app.delete('/todos/:id', authenticate, async (req: any, res) => {
+    const id = req.params.id;
     if (!ObjectId.isValid(id)) {
         res.status(400).send({error: 'Invalid id!'});
         return;
     }
-    Todo.findOneAndRemove({_id: id, _owner: req.user._id})
-        .then(todo => {
-            if (todo) {
-                res.send({todo});
-                return;
-            }
-            res.status(404).send({error: 'Could not find todo with that id!'});
-        })
-        .catch(err => res.status(400).send({error: 'Could not reach database!'}));
+    try {
+        const todo = await Todo.findOneAndRemove({_id: id, _owner: req.user._id});
+        if (todo) {
+            res.send({todo});
+            return;
+        }
+        res.status(404).send({error: 'Could not find todo with that id!'});
+    } catch (e) {
+        res.status(400).send({error: 'Could not reach database!'});
+    }
 });
 
-app.patch('/todos/:id', authenticate, (req: any, res) => {
+app.patch('/todos/:id', authenticate, async (req: any, res) => {
     const id = req.params.id;
     const body: any = pick(req.body, ['text', 'completed']);
 
@@ -87,47 +95,55 @@ app.patch('/todos/:id', authenticate, (req: any, res) => {
         body.completedAt = null;
     }
 
-    Todo.findOneAndUpdate(
-        {_id: id, _owner: req.user._id},
-        {$set: body},
-        {new: true}
-        )
-        .then(todo => {
+    try {
+        const todo = await Todo.findOneAndUpdate(
+            {_id: id, _owner: req.user._id},
+            {$set: body},
+            {new: true}
+        );
         if (todo) {
             res.send({todo});
             return;
         }
         res.status(404).send({error: 'Could not find todo with that id!'});
-    }).catch(err => res.status(400).send({error: 'Could not reach database!'}))
+    } catch (e) {
+        res.status(400).send({error: 'Could not reach database!'})
+    }
 });
 
-app.post('/users', (req, res) => {
-    const user = new User(pick(req.body, ['email', 'password']));
-    user.save()
-        .then(() => user.generateAuthToken())
-        .then(token => res.header('x-auth', token).send(user))
-        .catch(err => res.status(400).send(err));
+app.post('/users', async (req, res) => {
+    try {
+        const user = new User(pick(req.body, ['email', 'password']));
+        await user.save();
+        const token = await user.generateAuthToken();
+        res.header('x-auth', token).send(user);
+    } catch (e) {
+        res.status(400).send();
+    }
 });
 
 app.get('/users/me', authenticate, (req: any, res) => {
     res.send(req.user);
 });
 
-app.post('/users/login', (req, res) => {
-   const authData = pick(req.body, ['email', 'password']);
-   User.findByCredentials(authData.email, authData.password)
-       .then((user: IUser) => {
-           return user.generateAuthToken().then(token => {
-               res.header('x-auth', token).send(user)
-           });
-       })
-       .catch((err: Error) => res.status(401).send('Invalid credentials!'));
+app.post('/users/login', async (req, res) => {
+    try {
+        const authData = pick(req.body, ['email', 'password']);
+        const user = await User.findByCredentials(authData.email, authData.password);
+        const token = await user.generateAuthToken();
+        res.header('x-auth', token).send(user);
+    } catch (e) {
+        res.status(401).send('Invalid credentials!');
+    }
 });
 
-app.delete('/users', authenticate, (req: any, res) => {
-    req.user.removeToken(req.token)
-        .then(() => res.status(200).send())
-        .catch(() => res.status(401).send());
+app.delete('/users', authenticate, async (req: any, res) => {
+    try {
+        await req.user.removeToken(req.token);
+        res.status(200).send();
+    } catch (e) {
+        res.status(401).send();
+    }
 });
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT} in ${env} mode...`));

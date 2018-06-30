@@ -1,14 +1,17 @@
 import {User} from "../models/user.model";
 import {NextFunction, Request, Response} from "express";
 
-export function authenticate(req: any, res: Response, next: NextFunction): void {
+export async function authenticate(req: any, res: Response, next: NextFunction) {
     const token = req.header('x-auth');
-    User.findByToken(token).then((user: any) => {
+    try {
+        const user = await User.findByToken(token);
         if (!user) {
-            return Promise.reject('Invalid credentials!');
+            throw new Error('Invalid credentials!');
         }
         req.user = user;
         req.token = token;
-        return next();
-    }).catch((err: string) => res.status(401).send(err));
+        next();
+    } catch (e) {
+        res.status(401).send('Invalid credentials!');
+    }
 }

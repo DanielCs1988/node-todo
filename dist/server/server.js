@@ -111,8 +111,8 @@ exports.app.patch('/todos/:id', authenticate_1.authenticate, (req, res) => __awa
     }
 }));
 exports.app.post('/users', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    const user = new user_model_1.User(lodash_1.pick(req.body, ['email', 'password']));
     try {
-        const user = new user_model_1.User(lodash_1.pick(req.body, ['email', 'password']));
         yield user.save();
         const token = yield user.generateAuthToken();
         res.header('x-auth', token).send(user);
@@ -125,8 +125,8 @@ exports.app.get('/users/me', authenticate_1.authenticate, (req, res) => {
     res.send(req.user);
 });
 exports.app.post('/users/login', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    const authData = lodash_1.pick(req.body, ['email', 'password']);
     try {
-        const authData = lodash_1.pick(req.body, ['email', 'password']);
         const user = yield user_model_1.User.findByCredentials(authData.email, authData.password);
         const token = yield user.generateAuthToken();
         res.header('x-auth', token).send(user);

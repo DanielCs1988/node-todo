@@ -112,8 +112,8 @@ app.patch('/todos/:id', authenticate, async (req: any, res) => {
 });
 
 app.post('/users', async (req, res) => {
+    const user = new User(pick(req.body, ['email', 'password']));
     try {
-        const user = new User(pick(req.body, ['email', 'password']));
         await user.save();
         const token = await user.generateAuthToken();
         res.header('x-auth', token).send(user);
@@ -127,8 +127,8 @@ app.get('/users/me', authenticate, (req: any, res) => {
 });
 
 app.post('/users/login', async (req, res) => {
+    const authData = pick(req.body, ['email', 'password']);
     try {
-        const authData = pick(req.body, ['email', 'password']);
         const user = await User.findByCredentials(authData.email, authData.password);
         const token = await user.generateAuthToken();
         res.header('x-auth', token).send(user);

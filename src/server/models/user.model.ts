@@ -4,10 +4,6 @@ import {sign, verify} from "jsonwebtoken";
 import {pick} from "lodash";
 import {compare, genSalt, hash} from "bcryptjs";
 
-const secret = process.env.SECRET;
-if (!secret) {
-    throw new Error('Could not hash token, because SECRET environmental variable was not found.');
-}
 
 export interface IUser extends Document {
     email: string;
@@ -64,7 +60,7 @@ UserSchema.methods.toJSON = function (): {_id: string, email: string} {
 UserSchema.methods.generateAuthToken = function (): Promise<string> {
     const user = this;
     const access = 'auth';
-    const token = sign({_id: user._id.toHexString(), access}, secret).toString();
+    const token = sign({_id: user._id.toHexString(), access}, process.env.SECRET!).toString();
     user.tokens = user.tokens.concat([{access, token}]);
     return user.save().then(() => token);
 };
@@ -94,7 +90,7 @@ UserSchema.pre('save', function (next) {
 UserSchema.statics.findByToken = function (token: string | undefined): any {
     let decodedToken;
     try {
-        decodedToken = verify(token!, secret);
+        decodedToken = verify(token!, process.env.SECRET!);
     } catch (e) {
         return Promise.reject('Invalid credentials!');
     }

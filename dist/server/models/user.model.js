@@ -5,10 +5,6 @@ const isEmail = require("validator/lib/isEmail");
 const jsonwebtoken_1 = require("jsonwebtoken");
 const lodash_1 = require("lodash");
 const bcryptjs_1 = require("bcryptjs");
-const secret = process.env.SECRET;
-if (!secret) {
-    throw new Error('Could not hash token, because SECRET environmental variable was not found.');
-}
 const UserSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -44,7 +40,7 @@ UserSchema.methods.toJSON = function () {
 UserSchema.methods.generateAuthToken = function () {
     const user = this;
     const access = 'auth';
-    const token = jsonwebtoken_1.sign({ _id: user._id.toHexString(), access }, secret).toString();
+    const token = jsonwebtoken_1.sign({ _id: user._id.toHexString(), access }, process.env.SECRET).toString();
     user.tokens = user.tokens.concat([{ access, token }]);
     return user.save().then(() => token);
 };
@@ -71,7 +67,7 @@ UserSchema.pre('save', function (next) {
 UserSchema.statics.findByToken = function (token) {
     let decodedToken;
     try {
-        decodedToken = jsonwebtoken_1.verify(token, secret);
+        decodedToken = jsonwebtoken_1.verify(token, process.env.SECRET);
     }
     catch (e) {
         return Promise.reject('Invalid credentials!');

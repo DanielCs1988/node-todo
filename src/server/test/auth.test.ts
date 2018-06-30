@@ -2,8 +2,8 @@ import {beforeEach, describe, it} from "mocha";
 import * as expect from "expect";
 import * as request from "supertest";
 
-import {populateUsers, users} from "./seed";
 import {app} from "../server";
+import {populateUsers, users} from "./seed";
 import {User} from "../models/user.model";
 
 beforeEach(populateUsers);

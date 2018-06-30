@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.env = process.env.NODE_ENV || 'development';
-if (exports.env === 'development') {
-    process.env.PORT = '8080';
-    process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/TodoApp';
-}
-else if (exports.env === 'test') {
-    process.env.PORT = '8080';
-    process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/TodoAppTest';
+if (exports.env === 'development' || exports.env === 'test') {
+    const config = require('./config.json');
+    const currentParams = config[exports.env];
+    Object.keys(currentParams).forEach(key => {
+        process.env[key] = currentParams[key];
+    });
 }
 //# sourceMappingURL=config.js.map

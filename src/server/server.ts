@@ -14,7 +14,6 @@ const DB_URL = process.env.MONGODB_URI;
 
 export const app = express();
 connect(DB_URL!);
-// TODO: How to separate this?
 
 app.use(json());
 

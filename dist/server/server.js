@@ -13,7 +13,6 @@ const PORT = process.env.PORT;
 const DB_URL = process.env.MONGODB_URI;
 exports.app = express();
 mongoose_1.connect(DB_URL);
-// TODO: How to separate this?
 exports.app.use(body_parser_1.json());
 exports.app.get('/todos', authenticate_1.authenticate, (req, res) => {
     todo_model_1.Todo.find({ _owner: req.user._id }).then(todos => {
